@@ -22,7 +22,7 @@ RUN pip install --no-cache-dir /app/mcp/mcp-movies
 COPY nanobot /app/nanobot
 
 RUN mkdir -p /app/nanobot/workspace/cron /app/nanobot/workspace/memory \
-    && chown -R appuser:appgroup /app/nanobot/workspace \
+    && chown -R appuser:appgroup /app/nanobot \
     && chmod -R 755 /app/nanobot/workspace
 
 USER appuser

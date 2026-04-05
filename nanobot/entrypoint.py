@@ -40,7 +40,7 @@ def main():
 
     # Configure movie MCP server
     config["tools"]["mcpServers"]["movies"] = {
-        "command": "/app/.venv/bin/python",
+        "command": "/usr/local/bin/python",
         "args": ["-m", "mcp_movies"],
         "env": {
             "MOVIE_BACKEND_URL": os.environ.get(
