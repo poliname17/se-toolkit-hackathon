@@ -14,7 +14,7 @@ RUN groupadd --system --gid ${APP_GID} appgroup \
 RUN pip install --no-cache-dir \
     mcp \
     httpx \
-    "nanobot @ https://github.com/HKUDS/nanobot/archive/e7d371ec1e6531b28898ec2c869ef338e8dd46ec.zip"
+    "nanobot-ai @ https://github.com/HKUDS/nanobot/archive/e7d371ec1e6531b28898ec2c869ef338e8dd46ec.zip"
 
 COPY mcp/mcp-movies /app/mcp/mcp-movies
 RUN pip install --no-cache-dir /app/mcp/mcp-movies
