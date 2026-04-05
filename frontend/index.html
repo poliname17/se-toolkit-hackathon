@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MovieBot 🎬</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, system-ui, sans-serif; display: flex; height: 100vh; background: #1a1a2e; color: #eee; }
+
+  /* --- Left: Movies --- */
+  .movies-panel {
+    width: 340px; min-width: 280px; background: #16213e;
+    display: flex; flex-direction: column; border-right: 1px solid #0f3460;
+  }
+  .movies-header {
+    padding: 16px; font-size: 18px; font-weight: 700; background: #0f3460;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .movies-header span { font-size: 22px; }
+  .add-form { padding: 12px; display: flex; gap: 6px; background: #1a1a2e; }
+  .add-form input { flex: 1; padding: 8px 12px; border: 1px solid #0f3460; border-radius: 6px; background: #16213e; color: #eee; font-size: 14px; }
+  .add-form input::placeholder { color: #556; }
+  .add-form button { padding: 8px 16px; background: #e94560; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; }
+  .add-form button:hover { background: #d63a52; }
+  .movies-list { flex: 1; overflow-y: auto; padding: 8px; }
+  .movie-item {
+    padding: 10px 12px; margin-bottom: 6px; background: #0f3460; border-radius: 8px;
+    display: flex; align-items: center; gap: 10px; font-size: 14px;
+  }
+  .movie-item.watched { opacity: 0.5; }
+  .movie-item .title { flex: 1; }
+  .movie-item .meta { font-size: 11px; color: #8899aa; }
+  .movie-item .actions { display: flex; gap: 4px; }
+  .movie-item button { background: none; border: 1px solid #334; color: #8899aa; border-radius: 4px; padding: 2px 8px; cursor: pointer; font-size: 12px; }
+  .movie-item button:hover { color: #eee; border-color: #667; }
+  .empty-msg { text-align: center; padding: 40px 20px; color: #556; font-size: 14px; }
+
+  /* --- Right: Chat --- */
+  .chat-panel { flex: 1; display: flex; flex-direction: column; }
+  .chat-header { padding: 16px; font-size: 18px; font-weight: 700; background: #0f3460; display: flex; align-items: center; gap: 8px; }
+  .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .msg { max-width: 75%; padding: 10px 14px; border-radius: 12px; font-size: 14px; line-height: 1.5; white-space: pre-wrap; }
+  .msg.bot { background: #16213e; align-self: flex-start; border-bottom-left-radius: 4px; }
+  .msg.user { background: #e94560; align-self: flex-end; border-bottom-right-radius: 4px; }
+  .msg.system { align-self: center; color: #556; font-size: 12px; background: none; }
+  .chat-input-area { padding: 12px; background: #0f3460; display: flex; gap: 8px; }
+  .chat-input-area input { flex: 1; padding: 10px 14px; border: 1px solid #334; border-radius: 8px; background: #1a1a2e; color: #eee; font-size: 14px; }
+  .chat-input-area input::placeholder { color: #556; }
+  .chat-input-area button { padding: 10px 20px; background: #e94560; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    body { flex-direction: column; }
+    .movies-panel { width: 100%; height: 40vh; border-right: none; border-bottom: 1px solid #0f3460; }
+    .chat-panel { height: 60vh; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Movies Panel -->
+<div class="movies-panel">
+  <div class="movies-header"><span>🎬</span> Watchlist</div>
+  <form class="add-form" id="addForm">
+    <input type="text" id="titleInput" placeholder="Movie title..." required>
+    <input type="text" id="genreInput" placeholder="Genre" style="width:80px;flex:none;">
+    <button type="submit">+</button>
+  </form>
+  <div class="movies-list" id="moviesList"><div class="empty-msg">Loading...</div></div>
+</div>
+
+<!-- Chat Panel -->
+<div class="chat-panel">
+  <div class="chat-header"><span>🤖</span> MovieBot</div>
+  <div class="chat-messages" id="chatMessages">
+    <div class="msg system">Connecting to MovieBot...</div>
+  </div>
+  <form class="chat-input-area" id="chatForm">
+    <input type="text" id="chatInput" placeholder="Ask MovieBot — e.g. 'what should I watch?'" autocomplete="off">
+    <button type="submit">Send</button>
+  </form>
+</div>
+
+<script>
+// Config — adjust if your VM IP or ports differ
+const API_URL = '/api';
+const WS_URL = window.location.protocol === 'https:'
+  ? `wss://${window.location.host}/ws`
+  : `ws://${window.location.host}/ws`;
+
+// --- Movies ---
+async function loadMovies() {
+  try {
+    const res = await fetch(`${API_URL}/movies/`);
+    const movies = await res.json();
+    const el = document.getElementById('moviesList');
+    if (!movies.length) { el.innerHTML = '<div class="empty-msg">No movies yet. Add one above!</div>'; return; }
+    el.innerHTML = movies.map(m => `
+      <div class="movie-item ${m.watched ? 'watched' : ''}">
+        <div>
+          <div class="title">${m.title} ${m.year ? '('+m.year+')' : ''}</div>
+          <div class="meta">${m.genre || 'no genre'} · ${m.watched ? '✓ watched' : '○ unwatched'}</div>
+        </div>
+        <div class="actions">
+          ${!m.watched ? `<button onclick="toggleWatched(${m.id}, true)">✓</button>` : `<button onclick="toggleWatched(${m.id}, false)">↩</button>`}
+          <button onclick="deleteMovie(${m.id})">✕</button>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) { console.error(e); }
+}
+
+document.getElementById('addForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const title = document.getElementById('titleInput').value.trim();
+  const genre = document.getElementById('genreInput').value.trim();
+  if (!title) return;
+  await fetch(`${API_URL}/movies/`, {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ title, genre: genre || null })
+  });
+  document.getElementById('titleInput').value = '';
+  document.getElementById('genreInput').value = '';
+  loadMovies();
+});
+
+async function toggleWatched(id, watched) {
+  await fetch(`${API_URL}/movies/${id}`, {
+    method: 'PUT', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ watched })
+  });
+  loadMovies();
+}
+
+async function deleteMovie(id) {
+  await fetch(`${API_URL}/movies/${id}`, { method: 'DELETE' });
+  loadMovies();
+}
+
+// --- Chat ---
+let ws = null;
+let reconnectTimer = null;
+
+function connectWS() {
+  ws = new WebSocket(WS_URL);
+  ws.onopen = () => addMsg('system', 'Connected to MovieBot');
+  ws.onmessage = (ev) => {
+    try {
+      const data = JSON.parse(ev.data);
+      if (data.text) addMsg('bot', data.text);
+    } catch { addMsg('bot', ev.data); }
+  };
+  ws.onclose = () => { addMsg('system', 'Disconnected — reconnecting...'); setTimeout(connectWS, 3000); };
+  ws.onerror = () => ws.close();
+}
+
+function addMsg(role, text) {
+  const el = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  div.textContent = text;
+  el.appendChild(div);
+  el.scrollTop = el.scrollHeight;
+}
+
+document.getElementById('chatForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text || !ws || ws.readyState !== WebSocket.OPEN) return;
+  addMsg('user', text);
+  ws.send(JSON.stringify({ text }));
+  input.value = '';
+});
+
+// --- Init ---
+loadMovies();
+connectWS();
+</script>
+</body>
+</html>

@@ -5,8 +5,6 @@ services:
     restart: unless-stopped
     networks:
       - movie-network
-    ports:
-      - "${BACKEND_HOST_PORT:-42002}:8000"
     environment:
       - MOVIE_DB_URL=sqlite:////data/movies.db
     volumes:
@@ -24,17 +22,27 @@ services:
     user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     networks:
       - movie-network
-    ports:
-      - "${NANOBOT_GATEWAY_PORT:-8765}:${NANOBOT_GATEWAY_PORT:-8765}"
     environment:
       - LLM_API_KEY=${LLM_API_KEY:?'LLM_API_KEY is required'}
       - LLM_API_BASE_URL=${LLM_API_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
       - LLM_API_MODEL=${LLM_API_MODEL:?'LLM_API_MODEL is required'}
       - MOVIE_BACKEND_URL=http://backend:8000
       - NANOBOT_GATEWAY_HOST=0.0.0.0
-      - NANOBOT_GATEWAY_PORT=${NANOBOT_GATEWAY_PORT:-8765}
+      - NANOBOT_GATEWAY_PORT=8765
     depends_on:
       - backend
+
+  frontend:
+    build:
+      context: ./frontend
+    restart: unless-stopped
+    networks:
+      - movie-network
+    ports:
+      - "${GATEWAY_HOST_PORT:-80}:80"
+    depends_on:
+      - backend
+      - nanobot
 
 volumes:
   movie-db-data:
