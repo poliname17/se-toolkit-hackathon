@@ -6,7 +6,8 @@ ENV UV_PYTHON_DOWNLOADS=0
 
 WORKDIR /app
 
-COPY --from=workspace pyproject.toml uv.lock /app/
+COPY --from=workspace pyproject.toml /app/
+
 COPY --from=workspace mcp/mcp-movies /app/mcp/mcp-movies
 COPY --from=workspace nanobot/pyproject.toml /app/nanobot/pyproject.toml
 
