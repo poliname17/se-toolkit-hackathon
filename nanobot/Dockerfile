@@ -12,7 +12,7 @@ COPY --from=workspace mcp/mcp-movies /app/mcp/mcp-movies
 COPY --from=workspace nanobot/pyproject.toml /app/nanobot/pyproject.toml
 
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --package nanobot
+    uv sync --package nanobot
 
 COPY --from=workspace nanobot/. /app/nanobot/
 
