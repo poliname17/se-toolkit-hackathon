@@ -1,0 +1,76 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    networks:
+      - movie-network
+    ports:
+      - "${BACKEND_HOST_PORT:-42002}:8000"
+    environment:
+      - MOVIE_DB_URL=sqlite:////data/movies.db
+    volumes:
+      - movie-db-data:/data
+
+  nanobot:
+    build:
+      context: ./nanobot
+      additional_contexts:
+        workspace: .
+      args:
+        REGISTRY_PREFIX_DOCKER_HUB: ${REGISTRY_PREFIX_DOCKER_HUB:-}
+        APP_UID: ${HOST_UID:-1000}
+        APP_GID: ${HOST_GID:-1000}
+    restart: unless-stopped
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    networks:
+      - movie-network
+    volumes:
+      - ./nanobot:/app/nanobot
+      - ./mcp:/app/mcp
+      - ./nanobot-websocket-channel:/app/nanobot-websocket-channel
+    ports:
+      - "${NANOBOT_WEBCHAT_CONTAINER_PORT:-8765}:${NANOBOT_WEBCHAT_CONTAINER_PORT:-8765}"
+    environment:
+      - LLM_API_KEY=${LLM_API_KEY:?'LLM_API_KEY is required'}
+      - LLM_API_BASE_URL=${LLM_API_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
+      - LLM_API_MODEL=${LLM_API_MODEL:?'LLM_API_MODEL is required'}
+      - MOVIE_BACKEND_URL=http://backend:8000
+      - NANOBOT_WEBCHAT_CONTAINER_ADDRESS=0.0.0.0
+      - NANOBOT_WEBCHAT_CONTAINER_PORT=8080
+      - NANOBOT_ACCESS_KEY=${NANOBOT_ACCESS_KEY:?'NANOBOT_ACCESS_KEY is required'}
+    depends_on:
+      - backend
+
+  client-web-flutter:
+    build:
+      context: ./nanobot-websocket-channel/client-web-flutter
+      args:
+        REGISTRY_PREFIX_DOCKER_HUB: ${REGISTRY_PREFIX_DOCKER_HUB:-}
+        REGISTRY_PREFIX_GHCR: ${REGISTRY_PREFIX_GHCR:-}
+        NANOBOT_WS_URL: ws://nanobot:8765
+        NANOBOT_ACCESS_KEY: ${NANOBOT_ACCESS_KEY:-}
+    volumes:
+      - client-web-flutter:/output
+
+  caddy:
+    image: ${REGISTRY_PREFIX_DOCKER_HUB:-}caddy:2.11-alpine
+    networks:
+      - movie-network
+    depends_on:
+      - backend
+      - nanobot
+    ports:
+      - "${GATEWAY_HOST_PORT:-8080}:80"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+      - client-web-flutter:/srv/flutter:ro
+
+volumes:
+  movie-db-data:
+  client-web-flutter:
+
+networks:
+  movie-network:
+    name: movie-network
+    attachable: true

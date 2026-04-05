@@ -1,0 +1,26 @@
+{
+  "providers": {
+    "custom": {
+      "apiKey": "",
+      "apiBase": "http://qwen-code-api:8080/v1"
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": "qwen-plus"
+    }
+  },
+  "gateway": {
+    "host": "0.0.0.0",
+    "port": 8765
+  },
+  "channels": {
+    "webchat": {
+      "host": "0.0.0.0",
+      "port": 8080
+    }
+  },
+  "tools": {
+    "mcpServers": {}
+  }
+}

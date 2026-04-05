@@ -1,0 +1,6 @@
+.env.docker.secret
+__pycache__/
+*.pyc
+*.db
+.venv/
+/output/

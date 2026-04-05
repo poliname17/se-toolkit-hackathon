@@ -1,0 +1,9 @@
+[tool.uv.workspace]
+members = [
+    "mcp/mcp-movies",
+]
+
+[dependency-groups]
+dev = ["poethepoet>=0.40.0"]
+
+[tool.poe.tasks]
