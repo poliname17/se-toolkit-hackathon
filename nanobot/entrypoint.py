@@ -32,10 +32,10 @@ def main():
         config["agents"]["defaults"]["model"] = llm_api_model
 
     # Override gateway settings
-    if nanobot_gateway_host := os.environ.get("NANOBOT_GATEWAY_CONTAINER_ADDRESS"):
+    if nanobot_gateway_host := os.environ.get("NANOBOT_GATEWAY_HOST"):
         config["gateway"]["host"] = nanobot_gateway_host
 
-    if nanobot_gateway_port := os.environ.get("NANOBOT_GATEWAY_CONTAINER_PORT"):
+    if nanobot_gateway_port := os.environ.get("NANOBOT_GATEWAY_PORT"):
         config["gateway"]["port"] = int(nanobot_gateway_port)
 
     # Configure movie MCP server
@@ -45,27 +45,6 @@ def main():
         "env": {
             "MOVIE_BACKEND_URL": os.environ.get(
                 "MOVIE_BACKEND_URL", "http://backend:8000"
-            ),
-        },
-    }
-
-    # Enable webchat channel
-    if nanobot_webchat_host := os.environ.get("NANOBOT_WEBCHAT_CONTAINER_ADDRESS"):
-        config["channels"]["webchat"]["host"] = nanobot_webchat_host
-
-    if nanobot_webchat_port := os.environ.get("NANOBOT_WEBCHAT_CONTAINER_PORT"):
-        config["channels"]["webchat"]["port"] = int(nanobot_webchat_port)
-
-    # Configure webchat MCP server for structured UI messages
-    config["tools"]["mcpServers"]["webchat"] = {
-        "command": "/app/.venv/bin/python",
-        "args": ["-m", "mcp_webchat"],
-        "env": {
-            "NANOBOT_WEBCHAT_UI_RELAY_URL": os.environ.get(
-                "NANOBOT_WEBCHAT_UI_RELAY_URL", "ws://localhost:8080/ws/chat"
-            ),
-            "NANOBOT_WEBCHAT_UI_RELAY_TOKEN": os.environ.get(
-                "NANOBOT_ACCESS_KEY", ""
             ),
         },
     }

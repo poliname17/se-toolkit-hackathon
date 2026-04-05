@@ -1,103 +1,72 @@
 # Movie Watchlist + Nanobot Assistant
 
-A web app to save movies you want to watch, plus a chat-style nanobot that recommends from your list by genre or mood.
+A movie watchlist with a chat-style AI assistant that helps you pick what to watch.
 
 ## Product
 
-**Problem:** People save movie names in notes apps, messages, or memory — all scattered. This product stores them in one place and later helps pick what to watch based on mood or genre.
+**Problem:** People save movie names in notes apps, messages, or memory — all scattered. This stores them in one place and helps pick what to watch based on genre or mood.
 
-**Version 1:** A simple list of movies to watch — add, view, remove, and mark as watched.
+**Version 1:** Simple list — add, view, remove, mark as watched.
 
-**Version 2:** A nanobot assistant that helps users navigate their watchlist and suggests options based on genre, mood, or what they're in the mood for.
+**Version 2:** Nanobot assistant — talk to it in natural language, it searches your list and suggests what to watch.
 
 ## Architecture
 
 ```
-[Browser - Flutter Web Client]
-            |
-            v
-    [Nanobot Agent] ←→ [LLM via Qwen Code API]
-            |
-    [Movie MCP Tools]
-            |
-    [FastAPI Backend] ←→ [PostgreSQL]
+[Browser — nanobot web UI at :8765]
+           |
+    [Nanobot Agent] ←→ [LLM via API]
+           |
+   [MCP: movie tools]
+           |
+    [FastAPI Backend] ←→ [SQLite]
 ```
-
-### What's included
-
-- **backend/** — FastAPI service with CRUD endpoints for the movie watchlist.
-- **nanobot/** — Nanobot agent configured as a movie assistant.
-- **mcp/mcp-movies/** — MCP server that gives the agent tools to query the watchlist.
-- **nanobot-websocket-channel/** — WebSocket bridge + Flutter web chat client.
-- **docker-compose.yml** — Runs everything together.
 
 ## Quick Start
 
-### Prerequisites
-
-- Docker & Docker Compose
-- Git
-- A Qwen API key (or any OpenAI-compatible LLM endpoint)
-
-### 1. Clone the repo
-
-```sh
-git clone <your-repo-url>
-cd movie-watchlist-bot
-```
-
-### 2. Configure environment
+### 1. Configure environment
 
 ```sh
 cp .env.docker.example .env.docker.secret
 ```
 
 Edit `.env.docker.secret` and fill in:
-- `LLM_API_KEY` — your Qwen/LLM API key
-- `LLM_API_MODEL` — model name (e.g. `qwen-plus`)
-- `NANOBOT_ACCESS_KEY` — any random string for auth
+- **`LLM_API_KEY`** — your Qwen/DashScope API key
+- **`LLM_API_MODEL`** — e.g. `qwen-plus`
 
-### 3. Start the stack
+### 2. Start the stack
 
 ```sh
-docker compose up --build -d
+docker compose --env-file .env.docker.secret up --build -d
 ```
 
-### 4. Use the app
+### 3. Use the app
 
-- **Swagger UI:** http://localhost:42002/docs — add movies directly via API
-- **Nanobot Chat:** http://localhost:8080 — talk to the agent in natural language
+- **Nanobot Chat UI:** http://localhost:8765 — talk to the movie assistant
+- **Swagger API:** http://localhost:42002/docs — add movies directly via REST API
 
 ## API Endpoints
 
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/movies/` | List all movies |
+| GET | `/movies/search?q=...` | Search by title/genre/notes |
+| GET | `/movies/genre/{genre}` | Filter by genre |
+| GET | `/movies/unwatched` | Only unwatched movies |
 | POST | `/movies/` | Add a movie |
-| PUT | `/movies/{id}` | Update a movie (title, genre, watched) |
+| PUT | `/movies/{id}` | Update a movie |
 | DELETE | `/movies/{id}` | Remove a movie |
-| GET | `/movies/{id}` | Get movie details |
 
 ## Project Structure
 
 ```
-movie-watchlist-bot/
-├── backend/                # FastAPI + SQLAlchemy + PostgreSQL
-│   ├── src/movie_backend/
-│   ├── Dockerfile
-│   └── pyproject.toml
-├── nanobot/                # Nanobot agent
-│   ├── workspace/          # SOUL.md, skills, memory
+├── backend/src/movie_backend/   # FastAPI + SQLite CRUD
+├── mcp/mcp-movies/              # MCP server — 8 movie tools
+├── nanobot/                     # AI agent
+│   ├── workspace/               # SOUL.md, skills, memory
 │   ├── entrypoint.py
-│   ├── Dockerfile
-│   └── pyproject.toml
-├── mcp/                    # MCP servers
-│   └── mcp-movies/         # Movie watchlist tools
-├── nanobot-websocket-channel/
-│   ├── nanobot-channel-protocol/
-│   ├── nanobot-webchat/
-│   └── mcp-webchat/
+│   ├── config.json
+│   └── Dockerfile
 ├── docker-compose.yml
-├── .env.docker.example
-└── pyproject.toml          # Root workspace (MCP packages)
+└── .env.docker.example
 ```
