@@ -7,15 +7,13 @@ ENV UV_PYTHON_DOWNLOADS=0
 WORKDIR /app
 
 COPY --from=workspace pyproject.toml uv.lock /app/
-
-COPY mcp/mcp-movies /app/mcp/mcp-movies
-
-COPY nanobot/pyproject.toml /app/nanobot/pyproject.toml
+COPY --from=workspace mcp/mcp-movies /app/mcp/mcp-movies
+COPY --from=workspace nanobot/pyproject.toml /app/nanobot/pyproject.toml
 
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --package nanobot
 
-COPY nanobot/. /app/nanobot/
+COPY --from=workspace nanobot/. /app/nanobot/
 
 FROM ${REGISTRY_PREFIX_DOCKER_HUB}python:3.12-slim-bookworm
 
