@@ -24,9 +24,6 @@ services:
     user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     networks:
       - movie-network
-    volumes:
-      - ./nanobot:/app/nanobot
-      - ./mcp:/app/mcp
     ports:
       - "${NANOBOT_GATEWAY_PORT:-8765}:${NANOBOT_GATEWAY_PORT:-8765}"
     environment:
