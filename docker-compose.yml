@@ -14,9 +14,8 @@ services:
 
   nanobot:
     build:
-      context: ./nanobot
-      additional_contexts:
-        workspace: .
+      context: .
+      dockerfile: nanobot/Dockerfile
       args:
         REGISTRY_PREFIX_DOCKER_HUB: ${REGISTRY_PREFIX_DOCKER_HUB:-}
         APP_UID: ${HOST_UID:-1000}
