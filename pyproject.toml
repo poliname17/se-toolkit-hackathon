@@ -1,6 +1,7 @@
 [tool.uv.workspace]
 members = [
     "mcp/mcp-movies",
+    "movie-chat",
 ]
 
 [dependency-groups]

@@ -1,0 +1,17 @@
+[project]
+name = "movie-chat"
+version = "0.1.0"
+description = "WebSocket chat service for MovieBot"
+requires-python = ">=3.12"
+dependencies = [
+    "httpx",
+    "websockets",
+    "openai",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/movie_chat"]

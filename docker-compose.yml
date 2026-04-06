@@ -10,16 +10,11 @@ services:
     volumes:
       - movie-db-data:/data
 
-  nanobot:
+  chat:
     build:
       context: .
-      dockerfile: nanobot/Dockerfile
-      args:
-        REGISTRY_PREFIX_DOCKER_HUB: ${REGISTRY_PREFIX_DOCKER_HUB:-}
-        APP_UID: ${HOST_UID:-1000}
-        APP_GID: ${HOST_GID:-1000}
+      dockerfile: chat/Dockerfile
     restart: unless-stopped
-    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     networks:
       - movie-network
     environment:
@@ -27,8 +22,8 @@ services:
       - LLM_API_BASE_URL=${LLM_API_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
       - LLM_API_MODEL=${LLM_API_MODEL:?'LLM_API_MODEL is required'}
       - MOVIE_BACKEND_URL=http://backend:8000
-      - NANOBOT_GATEWAY_HOST=0.0.0.0
-      - NANOBOT_GATEWAY_PORT=8765
+      - CHAT_HOST=0.0.0.0
+      - CHAT_PORT=8765
     depends_on:
       - backend
 
@@ -42,7 +37,7 @@ services:
       - "${GATEWAY_HOST_PORT:-80}:80"
     depends_on:
       - backend
-      - nanobot
+      - chat
 
 volumes:
   movie-db-data:
