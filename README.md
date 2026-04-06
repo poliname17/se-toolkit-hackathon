@@ -14,7 +14,8 @@ The app shows your movie watchlist on the left and the MovieBot chat on the righ
 
 Ask MovieBot questions like *"what should I watch tonight?"* or *"recommend some sci-fi mind-benders"* — it searches your watchlist or suggests new movies.
 
-![MovieBot chat](screenshots/chat-example.png)
+![MovieBot chat](screenshots/image.png)
+![MovieBot chat](screenshots/image1.png)
 
 ## Product context
 
