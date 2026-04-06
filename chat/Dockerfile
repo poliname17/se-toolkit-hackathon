@@ -1,11 +1,11 @@
 FROM python:3.12-slim-bookworm
 
+ENV PYTHONPATH=/app
+
 WORKDIR /app
 
-COPY movie-chat/pyproject.toml /app/movie-chat/pyproject.toml
+COPY movie-chat/src /app/movie-chat/src
 
 RUN pip install --no-cache-dir httpx websockets openai
-
-COPY movie-chat/src /app/movie-chat/src
 
 CMD ["python", "-m", "movie_chat"]
