@@ -19,13 +19,31 @@ services:
       - movie-network
     environment:
       - LLM_API_KEY=${LLM_API_KEY:?'LLM_API_KEY is required'}
-      - LLM_API_BASE_URL=${LLM_API_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
+      - LLM_API_BASE_URL=http://qwen-code-api:8080/v1
       - LLM_API_MODEL=${LLM_API_MODEL:?'LLM_API_MODEL is required'}
       - MOVIE_BACKEND_URL=http://backend:8000
       - CHAT_HOST=0.0.0.0
       - CHAT_PORT=8765
     depends_on:
       - backend
+      - qwen-code-api
+
+  qwen-code-api:
+    image: ghcr.io/inno-se-toolkit/qwen-code-api:latest
+    restart: unless-stopped
+    networks:
+      - movie-network
+    environment:
+      - PORT=8080
+      - ADDRESS=0.0.0.0
+      - DEFAULT_MODEL=${LLM_API_MODEL:?'LLM_API_MODEL is required'}
+      - LOG_LEVEL=error
+      - MAX_RETRIES=5
+      - RETRY_DELAY_MS=1000
+      - QWEN_CODE_AUTH_USE=true
+      - QWEN_CODE_API_KEY=${LLM_API_KEY:?'LLM_API_KEY is required'}
+    volumes:
+      - ~/.qwen:/mnt/qwen-creds:ro
 
   frontend:
     build:
