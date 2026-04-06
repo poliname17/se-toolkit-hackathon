@@ -6,6 +6,7 @@ import asyncio
 import json
 import os
 import logging
+import httpx
 import websockets
 from openai import AsyncOpenAI
 from websockets.server import serve
