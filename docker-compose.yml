@@ -29,7 +29,8 @@ services:
       - qwen-code-api
 
   qwen-code-api:
-    image: ghcr.io/inno-se-toolkit/qwen-code-api:latest
+    build:
+      context: ./qwen-code-api
     restart: unless-stopped
     networks:
       - movie-network
