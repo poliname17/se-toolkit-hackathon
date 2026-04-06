@@ -109,6 +109,21 @@ async def tool_unwatched():
         lines.append(f"  {m['id']}. {m['title']}{year}{genre}")
     return "\n".join(lines)
 
+async def tool_recommend_external(prompt: str) -> str:
+    """Use the LLM to recommend movies outside the user's watchlist."""
+    resp = await client.chat.completions.create(
+        model=LLM_MODEL,
+        messages=[
+            {"role": "system", "content": f"""You are a movie expert. Recommend 3-5 movies based on: {prompt}
+
+For each movie give: title, year, genre, and one sentence why it fits.
+Format each as: "Title (Year) — Genre: why"
+Keep it brief and enthusiastic."""},
+            {"role": "user", "content": f"Recommend me movies like: {prompt}"},
+        ],
+    )
+    return "🎬 Here are some picks:\n" + (resp.choices[0].message.content or "Try something else!")
+
 TOOLS = [
     {
         "type": "function",
@@ -189,6 +204,20 @@ TOOLS = [
             "parameters": {"type": "object", "properties": {}}
         }
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "recommend_external",
+            "description": "Recommend movies NOT in the user's watchlist. Give genre, mood, or theme as the prompt. Use this when the user asks for general movie recommendations beyond their saved list.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "prompt": {"type": "string", "description": "What kind of movies to recommend, e.g. 'sci-fi mind-benders', 'cozy comedies', 'best thrillers of the 2010s'"}
+                },
+                "required": ["prompt"]
+            }
+        }
+    },
 ]
 
 TOOL_FUNCS = {
@@ -198,6 +227,7 @@ TOOL_FUNCS = {
     "delete_movie": tool_delete_movie,
     "search_movies": tool_search_movies,
     "unwatched": tool_unwatched,
+    "recommend_external": tool_recommend_external,
 }
 
 
